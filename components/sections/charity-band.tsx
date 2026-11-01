@@ -3,14 +3,16 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { Eyebrow, SectionTitle } from "@/components/ui/typography";
-import { IMPACT } from "@/lib/site";
+import { getSettings } from "@/lib/api/settings";
 
 /**
  * The slate "torn paper" band with the partner logos, the impact blurb and the white stat card that
  * hangs over its bottom edge. Used on the home and impact pages.
  * The page that uses it must leave ~220 px below for the hanging card.
  */
-export function CharityBand() {
+export async function CharityBand() {
+  const { impact } = await getSettings();
+
   return (
     <section
       aria-labelledby="impact-stat"
@@ -26,7 +28,7 @@ export function CharityBand() {
             className="mx-auto mb-[57px] h-auto w-full"
           />
           <p className="m-0 mb-4 text-center text-[18px] leading-8 font-medium text-white">
-            {IMPACT.blurb}
+            {impact.blurb}
           </p>
         </div>
 
@@ -37,10 +39,10 @@ export function CharityBand() {
           >
             <Eyebrow className="mb-0">OUR IMPACT</Eyebrow>
             <SectionTitle as="p" fixed className="text-center phone:text-[32px] phone:leading-[38.4px] phone:tracking-[1.92px]">
-              {IMPACT.amount}
+              {impact.amount_text}
             </SectionTitle>
             <p className="m-0 text-center text-[25px] leading-8 font-bold text-brand-navy">
-              {IMPACT.caption}
+              {impact.caption}
             </p>
             <Button
               variant="secondary"

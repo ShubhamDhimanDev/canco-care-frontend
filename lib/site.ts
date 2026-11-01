@@ -49,11 +49,3 @@ export const FOOTER_TAGLINE =
   "Together, we can uplift our local communities and create lasting change.";
 export const FOOTER_TAGLINE_BOLD =
   "Your support helps make a meaningful impact - join us in making a difference today!";
-
-/** The headline impact figure. Hard-coded on the live site; to become an admin setting (Q-C4). */
-export const IMPACT = {
-  amount: "$80,000",
-  caption: "AND COUNTING!",
-  blurb:
-    "Canco Cares is already impacting families and communities, with plans for rapid expansion. We're proud partners of the Make-A-Wish Foundation, having donated over $80,000. Our mission is to give back to communities and families, creating a ripple of positive change in our society.",
-} as const;

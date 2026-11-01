@@ -40,7 +40,8 @@ export function Button(props: AsLink | AsButton) {
     void _variant;
     void _className;
 
-    return /^(https?:|mailto:|tel:)/.test(href) ? (
+    // Absolute addresses and downloads are plain anchors: client-side navigation must not take them over.
+    return /^(https?:|mailto:|tel:)/.test(href) || "download" in rest ? (
       <a
         href={href}
         className={classes}
