@@ -29,7 +29,7 @@ function CareBox({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-[16px] bg-white px-[70px] pb-[50px] text-center shadow-card tablet:px-9 tablet:pb-[30px]">
+    <div className="flow-root rounded-[16px] bg-white px-[70px] pb-[50px] text-center shadow-card tablet:px-9 tablet:pb-[30px]">
       <Image
         src={image}
         alt={alt}
