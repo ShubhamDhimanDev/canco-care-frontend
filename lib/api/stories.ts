@@ -3,7 +3,13 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { apiGet, ApiError } from "@/lib/api/client";
-import type { Paginated, Story, StoryCard, StoryLookup } from "@/lib/api/types";
+import type {
+  Paginated,
+  Story,
+  StoryCard,
+  StoryLookup,
+  Tag,
+} from "@/lib/api/types";
 
 // Every function here is cached with tags (ADR-003). Laravel tells /api/revalidate which tags
 // changed when a story is saved; `cacheLife("hours")` is the safety net if that call never arrives.
@@ -14,14 +20,22 @@ export const STORIES_PAGE_SIZE = 9;
 export async function getStories(
   page = 1,
   perPage = STORIES_PAGE_SIZE,
+  tag?: string,
 ): Promise<Paginated<StoryCard>> {
   "use cache";
   cacheLife("hours");
   cacheTag("stories");
 
-  const { body } = await apiGet<Paginated<StoryCard>>(
-    `/stories?page=${page}&per_page=${perPage}`,
-  );
+  const query = new URLSearchParams({
+    page: String(page),
+    per_page: String(perPage),
+  });
+
+  if (tag) {
+    query.set("tag", tag);
+  }
+
+  const { body } = await apiGet<Paginated<StoryCard>>(`/stories?${query}`);
 
   if (!body) {
     throw new ApiError("The stories list came back empty.", 502, "/stories");
@@ -30,6 +44,7 @@ export async function getStories(
   return body;
 }
 
+/** The newest stories (used by the Our Impact page). */
 export async function getLatestStories(limit = 3): Promise<StoryCard[]> {
   "use cache";
   cacheLife("hours");
@@ -37,6 +52,22 @@ export async function getLatestStories(limit = 3): Promise<StoryCard[]> {
 
   const { body } = await apiGet<Paginated<StoryCard>>(
     `/stories?page=1&per_page=${limit}`,
+  );
+
+  return body?.data ?? [];
+}
+
+/**
+ * The home page's "Latest Stories": stories an editor marked "feature on the home page" first, then
+ * the newest others. With nothing featured this is the same list as getLatestStories().
+ */
+export async function getHomeStories(limit = 3): Promise<StoryCard[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("stories");
+
+  const { body } = await apiGet<Paginated<StoryCard>>(
+    `/stories?page=1&per_page=${limit}&featured_first=1`,
   );
 
   return body?.data ?? [];
@@ -63,6 +94,17 @@ export async function getStory(slug: string): Promise<StoryLookup> {
   return { kind: "missing" };
 }
 
+/** Tags that have at least one public story, most used first. */
+export async function getTags(): Promise<Tag[]> {
+  "use cache";
+  cacheLife("hours");
+  cacheTag("stories");
+
+  const { body } = await apiGet<{ data: Tag[] }>("/tags");
+
+  return body?.data ?? [];
+}
+
 /** Slugs to prerender at build time. Cache Components needs at least one real value. */
 export async function getStoryParams(): Promise<{ slug: string }[]> {
   const stories = await getStories(1, 24);
@@ -72,11 +114,21 @@ export async function getStoryParams(): Promise<{ slug: string }[]> {
   return params.length > 0 ? params : [{ slug: "placeholder" }];
 }
 
-/** Every public story, for the sitemap (the API caps a page at 24). */
+export async function getTagParams(): Promise<{ slug: string }[]> {
+  const params = (await getTags()).map(({ slug }) => ({ slug }));
+
+  return params.length > 0 ? params : [{ slug: "placeholder" }];
+}
+
+/** Every public story, for the sitemap and feeds (the API caps a page at 24). */
 export async function getAllStoryEntries(): Promise<
-  { slug: string; published_at: string | null }[]
+  { slug: string; published_at: string | null; noindex: boolean }[]
 > {
-  const entries: { slug: string; published_at: string | null }[] = [];
+  const entries: {
+    slug: string;
+    published_at: string | null;
+    noindex: boolean;
+  }[] = [];
   let page = 1;
   let lastPage = 1;
 
@@ -84,7 +136,11 @@ export async function getAllStoryEntries(): Promise<
     const result = await getStories(page, 24);
 
     entries.push(
-      ...result.data.map(({ slug, published_at }) => ({ slug, published_at })),
+      ...result.data.map(({ slug, published_at, noindex }) => ({
+        slug,
+        published_at,
+        noindex,
+      })),
     );
     lastPage = result.meta.last_page;
     page += 1;

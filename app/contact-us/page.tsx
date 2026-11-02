@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
+import { ContactForm } from "@/components/contact/contact-form";
 import { Container } from "@/components/ui/container";
 import { Eyebrow, Lead, PageTitle } from "@/components/ui/typography";
-import { CONTACT_EMAIL } from "@/lib/site";
+import { getInquiryTopics } from "@/lib/api/inquiries";
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -11,9 +12,9 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact-us" },
 };
 
-// INTERIM: the inquiry form needs the Laravel inquiries endpoint (docs/plan/09-feature-inquiries.md),
-// which is not built yet. Until then this page carries the live copy and a plain email address.
-export default function ContactUsPage() {
+export default async function ContactUsPage() {
+  const topics = await getInquiryTopics();
+
   return (
     <div className="pt-[250px] pb-[70px] tablet:pt-[173px] phone:pt-[128px]">
       <Container>
@@ -28,23 +29,26 @@ export default function ContactUsPage() {
             improve our services. So don’t hesitate to reach out.
           </Lead>
           <h2 className="mt-[39px] mb-0 text-[22px] leading-8 font-semibold text-brand-slate">
-            Please email us with your contact information and message.
+            Please fill out the form below with your contact information and
+            message.
           </h2>
-          <Lead className="mt-2 text-[20px]">
-            <a
-              href={`mailto:${CONTACT_EMAIL}`}
-              className="font-semibold text-brand-navy underline underline-offset-4"
-            >
-              {CONTACT_EMAIL}
-            </a>
-          </Lead>
           <p className="mt-2 mb-0 text-[18px] leading-8 font-medium">
-            We’ll do our best to respond as quickly as possible. An online
-            contact form is coming soon.
+            We’ll do our best to respond as quickly as possible.
           </p>
         </div>
+      </Container>
 
-        <div className="mt-[120px] text-center">
+      <section
+        aria-label="Contact form"
+        className="mt-[60px] bg-[url('/images/blueBg.webp')] bg-cover bg-center bg-no-repeat py-[66px] phone:py-[50px]"
+      >
+        <Container>
+          <ContactForm topics={topics} />
+        </Container>
+      </section>
+
+      <Container>
+        <div className="mt-[120px] text-center phone:mt-[80px]">
           <p className="m-0 text-[18px] leading-8 font-medium">
             Thank you for your interest in Canco Cares
           </p>
