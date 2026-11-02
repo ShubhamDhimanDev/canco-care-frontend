@@ -30,7 +30,7 @@ export function StoryCard({ story }: { story: StoryCardData }) {
         variant="secondary"
         href={`/stories/${story.slug}`}
         aria-label={`Read more: ${story.title}`}
-        className="absolute bottom-[-27px] left-1/2 w-full max-w-[50%] -translate-x-1/2 text-center tablet:max-w-[70%]"
+        className="absolute bottom-[-27px] left-1/2 z-10 w-full max-w-[50%] -translate-x-1/2 text-center tablet:max-w-[70%]"
       >
         Read more
       </Button>
