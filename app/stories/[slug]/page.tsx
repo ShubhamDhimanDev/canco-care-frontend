@@ -137,7 +137,7 @@ export default async function StoryPage({
   };
 
   return (
-    <article className="pt-[253px] pb-[116px] tablet:pt-[176px] phone:pt-[138px]">
+    <article className="pt-[253px] pb-[200px] tablet:pt-[176px] phone:pt-[138px]">
       <Container>
         <div className="mx-auto md:max-w-[calc((100%+24px)*11/12-24px)] lg:max-w-[calc((100%+24px)*2/3-24px)]">
           {story.image && (
@@ -217,7 +217,7 @@ export default async function StoryPage({
               )}
             </nav>
 
-            <p className="mt-10 mb-0 text-center">
+            <p className="relative z-10 mt-10 mb-0 text-center">
               <Link
                 href="/stories"
                 className="text-[16px] font-semibold text-brand-slate-dark underline underline-offset-4"

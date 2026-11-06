@@ -154,7 +154,7 @@ export default async function EventPage({
   const description = plain(event.description);
 
   return (
-    <article className="pt-[253px] pb-[116px] tablet:pt-[176px] phone:pt-[138px]">
+    <article className="pt-[253px] pb-[200px] tablet:pt-[176px] phone:pt-[138px]">
       <Container>
         <div className="mx-auto md:max-w-[calc((100%+24px)*11/12-24px)] lg:max-w-[calc((100%+24px)*2/3-24px)]">
           {event.image && (
@@ -265,7 +265,7 @@ export default async function EventPage({
               />
             )}
 
-            <p className="mt-12 mb-0 text-center">
+            <p className="relative z-10 mt-12 mb-0 text-center">
               <Link
                 href="/upcoming-events"
                 className="text-[16px] font-semibold text-brand-slate-dark underline underline-offset-4"
