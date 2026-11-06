@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { LIVE } from "@/lib/api/cache";
 import { apiGet, ApiError } from "@/lib/api/client";
 import type { PublicSettings } from "@/lib/api/types";
 
@@ -12,7 +13,7 @@ import type { PublicSettings } from "@/lib/api/types";
  */
 export async function getSettings(): Promise<PublicSettings> {
   "use cache";
-  cacheLife("hours");
+  cacheLife(LIVE);
   cacheTag("settings");
 
   const { body } = await apiGet<{ data: PublicSettings }>("/settings");

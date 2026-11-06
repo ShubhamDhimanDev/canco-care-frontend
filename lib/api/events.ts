@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { LIVE_EVENTS } from "@/lib/api/cache";
 import { apiGet, ApiError } from "@/lib/api/client";
 import type {
   Event,
@@ -23,7 +24,7 @@ export async function getEvents(
   perPage = EVENTS_PAGE_SIZE,
 ): Promise<Paginated<EventCard>> {
   "use cache";
-  cacheLife("minutes");
+  cacheLife(LIVE_EVENTS);
   cacheTag("events");
 
   const query = new URLSearchParams({
@@ -47,7 +48,7 @@ export async function getEvents(
 
 export async function getEvent(slug: string): Promise<EventLookup> {
   "use cache";
-  cacheLife("minutes");
+  cacheLife(LIVE_EVENTS);
   cacheTag("events", `event:${slug}`);
 
   const { status, body } = await apiGet<
