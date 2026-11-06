@@ -4,8 +4,10 @@ import { Suspense } from "react";
 
 import { EventGrid } from "@/components/events/event-card";
 import { Container } from "@/components/ui/container";
+import { FilterBar } from "@/components/ui/filter-bar";
 import { Eyebrow, Lead, PageTitle } from "@/components/ui/typography";
-import { getEvents } from "@/lib/api/events";
+import { getEvents, searchEvents, type EventScope } from "@/lib/api/events";
+import { pageParam, param, withParams } from "@/lib/search-params";
 import { INSTAGRAM_HANDLE, SOCIAL } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -34,14 +36,8 @@ function EventsSkeleton() {
   );
 }
 
-/** Reads `?page=` (a runtime value, hence the Suspense boundary above it), then renders from the cached list. */
-async function UpcomingEvents({
-  searchParams,
-}: Pick<PageProps<"/upcoming-events">, "searchParams">) {
-  const { page } = await searchParams;
-  const raw = Array.isArray(page) ? page[0] : page;
-  const current = Math.max(1, Number.parseInt(raw ?? "1", 10) || 1);
-
+/** The upcoming list (cached), page `current`. */
+async function UpcomingEvents({ current }: { current: number }) {
   const upcoming = await getEvents("upcoming", current);
 
   if (upcoming.data.length === 0 && current === 1) {
@@ -135,6 +131,137 @@ async function PastEvents() {
   );
 }
 
+const SCOPES: { value: EventScope; label: string }[] = [
+  { value: "upcoming", label: "Upcoming events" },
+  { value: "past", label: "Past events" },
+  { value: "all", label: "All events" },
+];
+
+/**
+ * Reads `?q=`, `?scope=` and `?page=` (runtime values, hence the Suspense boundary above). With nothing
+ * chosen it shows the usual page: upcoming events, then a few past ones. A search or a "past"/"all" choice
+ * shows one list of results instead.
+ */
+async function EventsBrowser({
+  searchParams,
+}: Pick<PageProps<"/upcoming-events">, "searchParams">) {
+  const params = await searchParams;
+  const q = param(params.q);
+  const scope: EventScope =
+    SCOPES.find((item) => item.value === param(params.scope, 10))?.value ??
+    "upcoming";
+  const current = pageParam(params.page);
+  const filtered = q !== "" || scope !== "upcoming";
+
+  const bar = (
+    <FilterBar
+      action="/upcoming-events"
+      label="Search events"
+      placeholder="Search events"
+      query={q}
+      select={{
+        name: "scope",
+        label: "Show",
+        value: scope,
+        options: SCOPES,
+      }}
+      clearHref={filtered ? "/upcoming-events" : undefined}
+    />
+  );
+
+  if (!filtered) {
+    return (
+      <>
+        {bar}
+        <UpcomingEvents current={current} />
+        <Suspense fallback={null}>
+          <PastEvents />
+        </Suspense>
+      </>
+    );
+  }
+
+  const result = q
+    ? await searchEvents(q, scope, current)
+    : await getEvents(scope, current);
+  const link = (page: number) =>
+    withParams("/upcoming-events", {
+      q,
+      scope: scope === "upcoming" ? "" : scope,
+      page,
+    });
+  const { meta } = result;
+
+  return (
+    <>
+      {bar}
+
+      {result.data.length === 0 ? (
+        <p
+          role="status"
+          className="m-0 text-center text-[20px] leading-8 font-medium"
+        >
+          No events match your search.{" "}
+          <Link
+            href="/upcoming-events"
+            className="underline underline-offset-4"
+          >
+            Show upcoming events
+          </Link>
+          .
+        </p>
+      ) : (
+        <>
+          <p
+            role="status"
+            className="mt-0 mb-[60px] text-center text-[18px] font-medium text-brand-slate-dark"
+          >
+            {meta.total} {meta.total === 1 ? "event" : "events"}
+            {q && <> matching “{q}”</>}
+            {scope !== "upcoming" && (
+              <> · {scope === "past" ? "past" : "all"}</>
+            )}
+          </p>
+          <EventGrid events={result.data} past={scope === "past"} />
+
+          {meta.last_page > 1 && (
+            <nav
+              aria-label="Events pages"
+              className="mt-[100px] flex items-center justify-center gap-6 text-[18px] font-semibold text-brand-slate-dark"
+            >
+              {current > 1 ? (
+                <Link
+                  rel="prev"
+                  href={link(current - 1)}
+                  className="underline underline-offset-4"
+                >
+                  ← Previous
+                </Link>
+              ) : (
+                <span aria-hidden="true" />
+              )}
+              <span className="text-ink">
+                Page {meta.current_page} of {meta.last_page}
+              </span>
+              {current < meta.last_page ? (
+                <Link
+                  rel="next"
+                  href={link(current + 1)}
+                  className="underline underline-offset-4"
+                >
+                  Next →
+                </Link>
+              ) : (
+                <span aria-hidden="true" />
+              )}
+            </nav>
+          )}
+        </>
+      )}
+    </>
+  );
+}
+
 export default function UpcomingEventsPage(
   props: PageProps<"/upcoming-events">,
 ) {
@@ -145,25 +272,21 @@ export default function UpcomingEventsPage(
           <Eyebrow>Upcoming</Eyebrow>
           <PageTitle className="mb-2">EVENTS</PageTitle>
           <Lead className="mb-4">
-            Join us in making a difference! Explore our upcoming events and
-            find out how you can get involved. Each event is a unique
-            opportunity to connect with our community, support our mission,
-            and contribute to a brighter future.
+            Join us in making a difference! Explore our upcoming events and find
+            out how you can get involved. Each event is a unique opportunity to
+            connect with our community, support our mission, and contribute to a
+            brighter future.
           </Lead>
           <Lead className="mb-4">
-            From fundraisers to community outreach programs, there’s
-            something for everyone. Whether you’re looking to volunteer,
-            donate, or simply learn more about our work, our events are a
-            great place to start.
+            From fundraisers to community outreach programs, there’s something
+            for everyone. Whether you’re looking to volunteer, donate, or simply
+            learn more about our work, our events are a great place to start.
           </Lead>
         </section>
 
         <div className="mt-[100px]">
           <Suspense fallback={<EventsSkeleton />}>
-            <UpcomingEvents searchParams={props.searchParams} />
-          </Suspense>
-          <Suspense fallback={null}>
-            <PastEvents />
+            <EventsBrowser searchParams={props.searchParams} />
           </Suspense>
         </div>
 

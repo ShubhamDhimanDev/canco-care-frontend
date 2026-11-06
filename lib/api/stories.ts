@@ -45,6 +45,35 @@ export async function getStories(
   return body;
 }
 
+/**
+ * A visitor's search. Deliberately NOT cached: the words are free text, and caching every one would let
+ * anyone fill the cache. Laravel does the matching (title, excerpt, summary).
+ */
+export async function searchStories(
+  search: string,
+  page = 1,
+  tag?: string,
+  perPage = STORIES_PAGE_SIZE,
+): Promise<Paginated<StoryCard>> {
+  const query = new URLSearchParams({
+    search,
+    page: String(page),
+    per_page: String(perPage),
+  });
+
+  if (tag) {
+    query.set("tag", tag);
+  }
+
+  const { body } = await apiGet<Paginated<StoryCard>>(`/stories?${query}`);
+
+  if (!body) {
+    throw new ApiError("The stories search came back empty.", 502, "/stories");
+  }
+
+  return body;
+}
+
 /** The newest stories (used by the Our Impact page). */
 export async function getLatestStories(limit = 3): Promise<StoryCard[]> {
   "use cache";
