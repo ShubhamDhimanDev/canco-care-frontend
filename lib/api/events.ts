@@ -4,12 +4,7 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { LIVE_EVENTS } from "@/lib/api/cache";
 import { apiGet, ApiError } from "@/lib/api/client";
-import type {
-  Event,
-  EventCard,
-  EventLookup,
-  Paginated,
-} from "@/lib/api/types";
+import type { Event, EventCard, EventLookup, Paginated } from "@/lib/api/types";
 
 // Cached with the "events" tag; Laravel revalidates it whenever an event is saved. Lists also expire
 // within the hour on their own because "upcoming" changes as time passes, not only when an editor saves.
@@ -41,6 +36,29 @@ export async function getEvents(
 
   if (!body) {
     throw new ApiError("The events list came back empty.", 502, "/events");
+  }
+
+  return body;
+}
+
+/** A visitor's search (title, summary, venue, city). Not cached, for the same reason as searchStories(). */
+export async function searchEvents(
+  search: string,
+  scope: EventScope = "upcoming",
+  page = 1,
+  perPage = EVENTS_PAGE_SIZE,
+): Promise<Paginated<EventCard>> {
+  const query = new URLSearchParams({
+    search,
+    scope,
+    page: String(page),
+    per_page: String(perPage),
+  });
+
+  const { body } = await apiGet<Paginated<EventCard>>(`/events?${query}`);
+
+  if (!body) {
+    throw new ApiError("The events search came back empty.", 502, "/events");
   }
 
   return body;
