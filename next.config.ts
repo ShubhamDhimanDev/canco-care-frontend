@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
+    // Edits made in the admin must show on the next click. The browser's router cache may otherwise reuse
+    // a page it already has for minutes (see lib/api/cache.ts for the per-page `stale: 0`). Next does not
+    // accept less than 30 s for prefetched static pages, so that is the floor; nothing else is reused.
+    staleTimes: { dynamic: 0, static: 30 },
   },
   cacheComponents: true,
   // Deliberately OFF (the create-next-app default was on). With it on, a story published after the

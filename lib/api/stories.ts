@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { LIVE } from "@/lib/api/cache";
 import { apiGet, ApiError } from "@/lib/api/client";
 import type {
   Paginated,
@@ -12,7 +13,7 @@ import type {
 } from "@/lib/api/types";
 
 // Every function here is cached with tags (ADR-003). Laravel tells /api/revalidate which tags
-// changed when a story is saved; `cacheLife("hours")` is the safety net if that call never arrives.
+// changed when a story is saved; `cacheLife(LIVE)` is the safety net if that call never arrives.
 // A thrown error is never cached, so an API outage cannot get baked into a page.
 
 export const STORIES_PAGE_SIZE = 9;
@@ -23,7 +24,7 @@ export async function getStories(
   tag?: string,
 ): Promise<Paginated<StoryCard>> {
   "use cache";
-  cacheLife("hours");
+  cacheLife(LIVE);
   cacheTag("stories");
 
   const query = new URLSearchParams({
@@ -47,7 +48,7 @@ export async function getStories(
 /** The newest stories (used by the Our Impact page). */
 export async function getLatestStories(limit = 3): Promise<StoryCard[]> {
   "use cache";
-  cacheLife("hours");
+  cacheLife(LIVE);
   cacheTag("stories");
 
   const { body } = await apiGet<Paginated<StoryCard>>(
@@ -63,7 +64,7 @@ export async function getLatestStories(limit = 3): Promise<StoryCard[]> {
  */
 export async function getHomeStories(limit = 3): Promise<StoryCard[]> {
   "use cache";
-  cacheLife("hours");
+  cacheLife(LIVE);
   cacheTag("stories");
 
   const { body } = await apiGet<Paginated<StoryCard>>(
@@ -75,7 +76,7 @@ export async function getHomeStories(limit = 3): Promise<StoryCard[]> {
 
 export async function getStory(slug: string): Promise<StoryLookup> {
   "use cache";
-  cacheLife("hours");
+  cacheLife(LIVE);
   // "stories" too: prev/next links depend on the rest of the list.
   cacheTag("stories", `story:${slug}`);
 
@@ -97,7 +98,7 @@ export async function getStory(slug: string): Promise<StoryLookup> {
 /** Tags that have at least one public story, most used first. */
 export async function getTags(): Promise<Tag[]> {
   "use cache";
-  cacheLife("hours");
+  cacheLife(LIVE);
   cacheTag("stories");
 
   const { body } = await apiGet<{ data: Tag[] }>("/tags");

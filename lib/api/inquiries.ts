@@ -2,6 +2,7 @@ import "server-only";
 
 import { cacheLife, cacheTag } from "next/cache";
 
+import { LIVE } from "@/lib/api/cache";
 import { apiGet } from "@/lib/api/client";
 
 export type InquiryTopic = { slug: string; name: string };
@@ -12,7 +13,7 @@ export type InquiryTopic = { slug: string; name: string };
  */
 export async function getInquiryTopics(): Promise<InquiryTopic[]> {
   "use cache";
-  cacheLife("hours");
+  cacheLife(LIVE);
   cacheTag("settings");
 
   const { body } = await apiGet<{ data: InquiryTopic[] }>("/inquiry-types");
