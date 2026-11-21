@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 
 import { SiteFooter } from "@/components/layout/site-footer";
+import { ALLOW_INDEXING } from "@/lib/indexing";
 import { SiteHeader } from "@/components/layout/site-header";
 import {
   SITE_DESCRIPTION,
@@ -24,6 +25,8 @@ const montserrat = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
+  // Not indexable unless NEXT_PUBLIC_ALLOW_INDEXING=true (see lib/indexing.ts).
+  robots: ALLOW_INDEXING ? undefined : { index: false, follow: false },
   title: {
     default: `${SITE_NAME} — ${SITE_TAGLINE}`,
     template: `%s | ${SITE_NAME}`,

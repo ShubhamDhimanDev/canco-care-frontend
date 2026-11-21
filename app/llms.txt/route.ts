@@ -39,6 +39,7 @@ export async function GET() {
     `- [All stories](${SITE_URL}/stories)`,
     `- [Stories RSS feed](${SITE_URL}/stories/feed.xml)`,
     `- [Terms and conditions](${SITE_URL}/terms-and-conditions)`,
+    `- [Privacy policy](${SITE_URL}/privacy-policy)`,
     "",
   ];
 

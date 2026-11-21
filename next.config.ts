@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { securityHeaders } from "./lib/security-headers.mjs";
+
 // Images uploaded in the admin are served by the Laravel app (/storage/...). Allow exactly that origin.
 const apiOrigin = process.env.API_URL ? new URL(process.env.API_URL) : null;
 
@@ -13,6 +15,11 @@ const nextConfig: NextConfig = {
     staleTimes: { dynamic: 0, static: 30 },
   },
   cacheComponents: true,
+  // HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy (+ noindex off production).
+  // Modes and caveats: lib/security-headers.mjs.
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders() }];
+  },
   // Deliberately OFF (the create-next-app default was on). With it on, a story published after the
   // build is served from an "app shell" whose response has already started streaming, so an unknown
   // slug answers HTTP 200 (a "soft 404" with only a noindex tag). With it off, the first request waits

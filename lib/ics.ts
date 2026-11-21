@@ -39,19 +39,18 @@ function fold(line: string): string {
 
 /** "20261114T020000Z" */
 function utc(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  return date
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
 }
 
-/** The event's calendar date in its own zone, "20261114". */
-function localDate(date: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    timeZone,
-  })
-    .format(date)
-    .replaceAll("-", "");
+/** A wall-clock value ("2026-11-14T18:00:00") as an iCalendar date, "20261114", plus an optional day offset. */
+function localDate(local: string, addDays = 0): string {
+  const [year, month, day] = local.slice(0, 10).split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + addDays));
+
+  return date.toISOString().slice(0, 10).replaceAll("-", "");
 }
 
 function plainText(html: string | null): string {
@@ -102,13 +101,11 @@ export function buildIcs(event: Event, now = new Date()): string {
   ];
 
   if (event.is_all_day) {
-    // All-day events use dates, and DTEND is exclusive (the day after the last day).
-    const last = end ?? start;
-    const dayAfter = new Date(last.getTime() + 24 * 60 * 60 * 1000);
-
+    // All-day events use the organiser's calendar dates (no zone conversion), and DTEND is exclusive
+    // (the day after the last day).
     lines.push(
-      `DTSTART;VALUE=DATE:${localDate(start, event.timezone)}`,
-      `DTEND;VALUE=DATE:${localDate(dayAfter, event.timezone)}`,
+      `DTSTART;VALUE=DATE:${localDate(event.starts_local)}`,
+      `DTEND;VALUE=DATE:${localDate(event.ends_local ?? event.starts_local, 1)}`,
     );
   } else {
     lines.push(`DTSTART:${utc(start)}`);

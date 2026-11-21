@@ -13,10 +13,16 @@ export function HeartTitle({ title }: { title: string }) {
     return <>{upper}</>;
   }
 
+  // "H", the heart and "PE" are separate inline pieces, so without this the browser may break the line
+  // between them and split the word (seen on phones). The rest of the title can still wrap.
   return (
     <>
-      {upper.slice(0, at)}H<HeartO />
-      {upper.slice(at + 2)}
+      {upper.slice(0, at)}
+      <span className="whitespace-nowrap">
+        H<HeartO />
+        {upper.slice(at + 2, at + 4)}
+      </span>
+      {upper.slice(at + 4)}
     </>
   );
 }

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { getAllEventEntries } from "@/lib/api/events";
 import { getAllStoryEntries, getTags } from "@/lib/api/stories";
+import { ALLOW_INDEXING } from "@/lib/indexing";
 import { SITE_URL } from "@/lib/site";
 
 const PAGES = [
@@ -13,9 +14,15 @@ const PAGES = [
   "/partner-with-us",
   "/contact-us",
   "/terms-and-conditions",
+  "/privacy-policy",
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // A staging/demo copy publishes no sitemap (see lib/indexing.ts).
+  if (!ALLOW_INDEXING) {
+    return [];
+  }
+
   const [stories, tags, events] = await Promise.all([
     getAllStoryEntries(),
     getTags(),

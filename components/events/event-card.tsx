@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import type { EventCard as EventCardData } from "@/lib/api/types";
-import { formatEventPlace, formatEventWhen } from "@/lib/events";
+import { formatEventPlace, formatEventWhen, machineTime } from "@/lib/events";
 import { cn } from "@/lib/utils";
 
 /**
@@ -57,7 +57,7 @@ export function EventCard({
         {event.title}
       </h3>
       <p className="m-0 text-center text-[14px] leading-6 font-semibold text-brand-navy">
-        <time dateTime={event.starts_at}>{formatEventWhen(event)}</time>
+        <time dateTime={machineTime(event, event.starts_at)}>{formatEventWhen(event)}</time>
         {place && (
           <>
             <br />

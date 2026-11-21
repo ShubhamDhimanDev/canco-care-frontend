@@ -303,10 +303,10 @@ export function ContactForm({ topics }: { topics: InquiryTopic[] }) {
             >
               I agree to the{" "}
               <Link
-                href="/terms-and-conditions"
+                href="/privacy-policy"
                 className="font-semibold underline underline-offset-2"
               >
-                privacy terms
+                privacy policy
               </Link>{" "}
               and that Canco Cares may contact me about this inquiry.
             </label>
