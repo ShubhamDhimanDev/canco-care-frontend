@@ -88,10 +88,15 @@ export type EventCard = {
   title: string;
   summary: string;
   image: ApiImage | null;
-  /** ISO-8601, UTC. Show it in `timezone`. */
+  /** ISO-8601, UTC. For sorting, JSON-LD and calendars; never convert it with the server's zone data. */
   starts_at: string;
   ends_at: string | null;
+  /** The organiser's wall-clock time, "2026-12-01T18:00:00" (no offset). Print this as it is. */
+  starts_local: string;
+  ends_local: string | null;
   timezone: string;
+  /** "PT", "ET"… */
+  timezone_label: string;
   is_all_day: boolean;
   location_name: string | null;
   city: string | null;
@@ -131,3 +136,6 @@ export type PublicSettings = {
   contact: { inquiry_email: string };
   donations: { enabled: boolean; currency: "CAD" };
 };
+
+/** One editable page (docs/plan/14): text fields hold text (formatted fields hold sanitised HTML), image fields an image or null (= use the bundled picture). */
+export type PageContent = Record<string, string | ApiImage | null>;

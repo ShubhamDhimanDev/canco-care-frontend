@@ -721,11 +721,11 @@ export function DonationForm({
           >
             I agree to the{" "}
             <Link
-              href="/terms-and-conditions"
+              href="/privacy-policy"
               target="_blank"
               className="font-semibold text-brand-slate-dark underline underline-offset-2"
             >
-              privacy terms
+              privacy policy
             </Link>{" "}
             and that Canco Cares may email my receipt to the address above.
           </label>

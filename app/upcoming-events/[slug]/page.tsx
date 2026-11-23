@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Container } from "@/components/ui/container";
 import { getEvent, getEventParams } from "@/lib/api/events";
 import type { Event } from "@/lib/api/types";
-import { formatEventPlace, formatEventWhen } from "@/lib/events";
+import { formatEventPlace, formatEventWhen, machineTime } from "@/lib/events";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 
 // Events that exist at build time are prerendered; anything published later renders on first visit,
@@ -93,8 +93,10 @@ function eventJsonLd(event: Event) {
     "@type": "Event",
     name: event.title,
     description: event.meta_description ?? event.summary,
-    startDate: event.starts_at,
-    endDate: event.ends_at ?? undefined,
+    startDate: machineTime(event, event.starts_at),
+    endDate: event.ends_at
+      ? machineTime(event, event.ends_at, event.ends_local)
+      : undefined,
     eventStatus:
       event.status === "cancelled"
         ? "https://schema.org/EventCancelled"
@@ -183,7 +185,7 @@ export default async function EventPage({
                 {event.title}
               </h1>
               <p className="mt-3 mb-0 text-[16px] leading-7 font-semibold text-brand-navy">
-                <time dateTime={event.starts_at}>{formatEventWhen(event)}</time>
+                <time dateTime={machineTime(event, event.starts_at)}>{formatEventWhen(event)}</time>
               </p>
               {event.cost_note && (
                 <p className="mt-1 mb-0 text-[14px] font-medium text-ink">

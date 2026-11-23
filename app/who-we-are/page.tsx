@@ -1,47 +1,66 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import { Container } from "@/components/ui/container";
+import { getPage, pageImage, pageText } from "@/lib/api/pages";
+import type { ApiImage } from "@/lib/api/types";
 import { Eyebrow, SectionTitle } from "@/components/ui/typography";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Who We Are",
-  description:
-    "Our mission, vision and values: bridging businesses and communities to create a ripple of positive change across Canada.",
-  alternates: { canonical: "/who-we-are" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const content = await getPage("who-we-are");
+
+  return {
+    title: pageText(content, "meta_title"),
+    description: pageText(content, "meta_description"),
+    alternates: { canonical: "/who-we-are" },
+  };
+}
+
+type CardImage = { src: string; width: number; height: number; alt: string };
+
+/** The picture an editor chose in the admin, or the one bundled with the website. */
+function cardImage(chosen: ApiImage | null, bundled: CardImage): CardImage {
+  return chosen
+    ? {
+        src: chosen.url,
+        width: chosen.width ?? bundled.width,
+        height: chosen.height ?? bundled.height,
+        alt: chosen.alt ?? bundled.alt,
+      }
+    : bundled;
+}
 
 function CareBox({
   image,
-  alt,
   eyebrow,
   title,
   long,
-  children,
+  html,
 }: {
-  image: string;
-  alt: string;
+  image: CardImage;
   eyebrow: string;
   title: string;
   long?: boolean;
-  children: ReactNode;
+  /** Sanitised by the Laravel app when an editor saves the page. */
+  html: string;
 }) {
   return (
     <div className="flow-root rounded-[16px] bg-white px-[70px] pb-[50px] text-center shadow-card tablet:px-9 tablet:pb-[30px]">
       <Image
-        src={image}
-        alt={alt}
-        width={270}
-        height={271}
+        src={image.src}
+        alt={image.alt}
+        width={image.width}
+        height={image.height}
         className="mx-auto mb-10 -mt-[148px] h-auto w-[270px]"
       />
       <Eyebrow>{eyebrow}</Eyebrow>
       <SectionTitle long={long}>{title}</SectionTitle>
-      <div className="mt-2 text-left [&>p]:mb-5 [&>p]:text-[16px] [&>p]:leading-[30px] [&>p]:font-medium [&>p:first-child]:text-center [&>p:first-child]:text-[18px] [&>p:first-child]:font-bold">
-        {children}
-      </div>
+      <div
+        className="mt-2 text-left [&>p]:mb-5 [&>p]:text-[16px] [&>p]:leading-[30px] [&>p]:font-medium [&>p:first-child]:text-center [&>p:first-child]:text-[18px] [&>p:first-child]:font-bold"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   );
 }
@@ -94,7 +113,10 @@ function Connector() {
   );
 }
 
-export default function WhoWeArePage() {
+export default async function WhoWeArePage() {
+  const c = await getPage("who-we-are");
+  const t = (key: string) => pageText(c, key);
+
   return (
     <div className="pt-[180px] pb-[200px] tablet:pt-[99px]">
       {/* The live page had no <h1>; screen readers get one here. */}
@@ -105,32 +127,17 @@ export default function WhoWeArePage() {
           <div className="grid grid-cols-1 gap-x-[50px] gap-y-[200px] pt-0 tablet:pt-[210px] md:grid-cols-2 md:gap-y-0 phone:-mx-3 phone:pt-[140px]">
             <div className="relative">
               <CareBox
-                image="/images/careMission.webp"
-                alt="A hand holding a red heart"
-                eyebrow="Our"
-                title="MISSION"
+                image={cardImage(pageImage(c, "mission_image"), {
+                  src: "/images/careMission.webp",
+                  width: 270,
+                  height: 271,
+                  alt: "A hand holding a red heart",
+                })}
+                eyebrow={t("mission_eyebrow")}
+                title={t("mission_title")}
                 long
-              >
-                <p>
-                  At Canco Cares, we believe in the transformative power of
-                  compassion and community.
-                </p>
-                <p>
-                  Our mission is to create a ripple of positive change in our
-                  society, bridging the gap between businesses and
-                  communities. We inspire our employees and customers to
-                  extend their hands in service to the communities that we
-                  cherish, the places we call home.
-                </p>
-                <p>
-                  Through strategic partnerships, we ignite sparks of hope and
-                  progress that will echo into the future, touching lives for
-                  generations to come. We are more than a name, we are a
-                  movement. A movement committed to nurturing a better
-                  tomorrow, embodying the heartfelt spirit of caring that is
-                  the essence of our Canadian identity.
-                </p>
-              </CareBox>
+                html={t("mission_body")}
+              />
               <Image
                 src="/images/carePurple.webp"
                 alt=""
@@ -157,41 +164,17 @@ export default function WhoWeArePage() {
             </div>
 
             <CareBox
-              image="/images/careVision.webp"
-              alt="Two men sharing a warm embrace"
-              eyebrow="Strategic"
-              title="PARTNERSHIPS"
+              image={cardImage(pageImage(c, "vision_image"), {
+                src: "/images/careVision.webp",
+                width: 270,
+                height: 271,
+                alt: "Two men sharing a warm embrace",
+              })}
+              eyebrow={t("vision_eyebrow")}
+              title={t("vision_title")}
               long
-            >
-              <p>
-                At Canco Cares, we aim to create a future where compassion and
-                community are the cornerstones of societal progress.
-              </p>
-              <p>
-                We dream of a world where every individual, regardless of
-                their circumstances, is empowered to thrive and make a
-                meaningful contribution to their community. In the near
-                future, we see ourselves expanding our reach, touching more
-                lives, and strengthening the fabric of our community. We aim
-                to build strong partnerships that align with our mission,
-                fostering a network of support and collaboration. We are
-                committed to enhancing our sustainability, ensuring our
-                efforts today lead to lasting positive change. Above all, we
-                strive to promote inclusivity, creating a space where everyone
-                feels seen, heard, and valued.
-              </p>
-              <p>
-                As we look further into the future, we aspire to deepen our
-                impact, becoming a beacon of hope and resilience in our
-                community. We envision ourselves leading through partnerships,
-                championing sustainability, and fostering a culture of
-                inclusivity. Our dream is to leave a lasting legacy, a ripple
-                of positive change that inspires hope and resilience in
-                generations to come. This is the world we are committed to
-                helping build, a world that truly embodies the heartfelt
-                spirit of our Canadian identity.
-              </p>
-            </CareBox>
+              html={t("vision_body")}
+            />
           </div>
         </Container>
       </section>
@@ -208,56 +191,77 @@ export default function WhoWeArePage() {
               sizes="(min-width: 768px) 468px, 215px"
               className="mx-auto mt-[76px] mb-[95px] block h-auto w-[calc((100%+24px)*0.65)] max-w-none lg:hidden"
             />
-            <Eyebrow>Our</Eyebrow>
+            <Eyebrow>{t("values_eyebrow")}</Eyebrow>
             <SectionTitle
               id="values"
               className="tablet:text-[46px] tablet:leading-[55.2px] tablet:tracking-[2px]"
             >
-              VALUES
+              {t("values_title")}
             </SectionTitle>
             <p className="mt-2 mb-0 text-[18px] leading-[34px] font-semibold lg:-mx-3 lg:px-[90px]">
-              At Canco Cares, our values are the guiding principles
-              <br />
-              that inspire and direct our work:
+              {t("values_intro")
+                .split("\n")
+                .map((line, index) => (
+                  <Fragment key={index}>
+                    {index > 0 && <br />}
+                    {line}
+                  </Fragment>
+                ))}
             </p>
           </div>
 
           <div className="relative -mx-3 flex flex-col items-center gap-[70px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
             <Connector />
-            <ValueItem icon="/images/compassion.webp" size={[462, 444]} name="Compassion">
-              We believe in the power of empathy and understanding, always
-              approaching our work with kindness and respect for the
-              individuals and communities we serve.
+            <ValueItem
+              icon="/images/compassion.webp"
+              size={[462, 444]}
+              name={t("value_1_name")}
+            >
+              {t("value_1_text")}
             </ValueItem>
-            <ValueItem icon="/images/community.webp" size={[452, 462]} name="Community">
-              We value the strength and spirit of community. We strive to
-              foster connections and build relationships that strengthen our
-              collective ability to make a difference.
-            </ValueItem>
-          </div>
-
-          <div className="relative -mx-3 flex flex-col items-center gap-[70px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
-            <Connector />
-            <ValueItem icon="/images/empowerment.webp" size={[419, 461]} name="Empowerment">
-              We are committed to empowering individuals, enabling them to
-              overcome challenges and reach their full potential.
-            </ValueItem>
-            <ValueItem icon="/images/sustainability.webp" size={[395, 461]} name="Sustainability">
-              We are dedicated to creating solutions that are sustainable,
-              ensuring our efforts lead to lasting positive change.
+            <ValueItem
+              icon="/images/community.webp"
+              size={[452, 462]}
+              name={t("value_2_name")}
+            >
+              {t("value_2_text")}
             </ValueItem>
           </div>
 
           <div className="relative -mx-3 flex flex-col items-center gap-[70px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
             <Connector />
-            <ValueItem icon="/images/inclusivity.webp" size={[439, 420]} name="Inclusivity">
-              We believe in the importance of inclusivity, ensuring everyone
-              has the opportunity to thrive, regardless of their
-              circumstances.
+            <ValueItem
+              icon="/images/empowerment.webp"
+              size={[419, 461]}
+              name={t("value_3_name")}
+            >
+              {t("value_3_text")}
             </ValueItem>
-            <ValueItem icon="/images/legacy.webp" size={[409, 420]} name="Legacy" last>
-              We are driven by the desire to leave a positive legacy,
-              inspiring hope and resilience in generations to come.
+            <ValueItem
+              icon="/images/sustainability.webp"
+              size={[395, 461]}
+              name={t("value_4_name")}
+            >
+              {t("value_4_text")}
+            </ValueItem>
+          </div>
+
+          <div className="relative -mx-3 flex flex-col items-center gap-[70px] lg:grid lg:grid-cols-2 lg:items-start lg:gap-0">
+            <Connector />
+            <ValueItem
+              icon="/images/inclusivity.webp"
+              size={[439, 420]}
+              name={t("value_5_name")}
+            >
+              {t("value_5_text")}
+            </ValueItem>
+            <ValueItem
+              icon="/images/legacy.webp"
+              size={[409, 420]}
+              name={t("value_6_name")}
+              last
+            >
+              {t("value_6_text")}
             </ValueItem>
           </div>
         </Container>

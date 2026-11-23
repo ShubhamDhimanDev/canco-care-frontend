@@ -148,6 +148,51 @@
     font-weight: 500;
   }
 
+  /* Headings, lists and links an editor can add in the admin (Pages). */
+  .legal h2,
+  .legal h3 {
+    margin: 32px 0 16px;
+    font-weight: 600;
+    color: var(--color-brand-slate-dark);
+  }
+
+  .legal h2 {
+    font-size: 26px;
+    line-height: 34px;
+  }
+
+  .legal h3 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .legal ul,
+  .legal ol {
+    margin: 0 0 16px;
+    padding-left: 28px;
+    font-size: 18px;
+    line-height: 32px;
+    font-weight: 500;
+  }
+
+  .legal ul {
+    list-style: disc;
+  }
+
+  .legal ol {
+    list-style: decimal;
+  }
+
+  .legal a {
+    color: var(--color-brand-slate);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .legal a:hover {
+    color: var(--color-brand-orange);
+  }
+
   @media (max-width: 600px) {
     .legal h4 {
       font-size: 22px;

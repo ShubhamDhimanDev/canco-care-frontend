@@ -37,6 +37,7 @@ export const FOOTER_SITE_MAP: NavLink[] = [
   { label: "Upcoming Events", href: "/upcoming-events" },
   { label: "Contact Us", href: "/contact-us" },
   { label: "Terms and Conditions", href: "/terms-and-conditions" },
+  { label: "Privacy Policy", href: "/privacy-policy" },
 ];
 
 /** Footer "Our Impact" column. */
