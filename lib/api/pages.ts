@@ -24,15 +24,24 @@ export async function getPage(slug: PageSlug): Promise<PageContent> {
   cacheLife(LIVE);
   cacheTag("settings");
 
-  const { body } = await apiGet<{ data: { content: PageContent } }>(
+  const { status, body } = await apiGet<{ data?: { content?: PageContent } }>(
     `/pages/${slug}`,
   );
+  const content = body?.data?.content;
 
-  if (!body) {
-    throw new ApiError(`The page "${slug}" came back empty.`, 502, slug);
+  if (!content) {
+    // A 404 here means the Laravel app behind API_URL predates the Pages module (not deployed yet, or
+    // an old `php artisan route:cache`). Fail the build/render loudly instead of with a TypeError.
+    throw new ApiError(
+      status === 404
+        ? `The API has no /pages/${slug} (HTTP 404). Deploy the latest admin and run "php artisan optimize:clear" (or "route:clear") on the API server, then rebuild.`
+        : `The page "${slug}" came back empty (HTTP ${status}).`,
+      status === 404 ? 404 : 502,
+      `/pages/${slug}`,
+    );
   }
 
-  return body.data.content;
+  return content;
 }
 
 /** A text field of a page. */
